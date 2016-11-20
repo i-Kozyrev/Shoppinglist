@@ -1,5 +1,6 @@
 package ikozyrev.shoppinglist;
 
+import android.content.Context;
 import android.database.Cursor;
 import android.os.Bundle;
 import android.support.v4.app.LoaderManager.LoaderCallbacks;
@@ -15,12 +16,14 @@ import android.view.View;
 import android.widget.AdapterView.AdapterContextMenuInfo;
 import android.widget.ListView;
 
+
+
 public class MainActivity extends AppCompatActivity implements LoaderCallbacks<Cursor> {
 
     private static final int CM_DELETE_ID = 1;
     private static final int CM_CHANGE_STATUS_ID = 2;
     ListView mLvData;
-    DB mDb;
+    public static DB mDb;
     SimpleCursorAdapter mScAdapter;
     Toolbar mToolbar;
     public static boolean mInactiveFlag = false;
@@ -31,8 +34,7 @@ public class MainActivity extends AppCompatActivity implements LoaderCallbacks<C
         findViewsById();
         setSupportActionBar(mToolbar);
         // открываем подключение к БД
-        mDb = new DB(this);
-        mDb.open();
+        openDbConn();
 
 
         // создаем адаптер и настраиваем список
@@ -45,10 +47,25 @@ public class MainActivity extends AppCompatActivity implements LoaderCallbacks<C
 
         // создаем лоадер для чтения данных
         getSupportLoaderManager().initLoader(0, null, this);
-        getSupportLoaderManager().getLoader(0).forceLoad();
+        updateListView();
         // ATTENTION: This was auto-generated to implement the App Indexing API.
         // See https://g.co/AppIndexing/AndroidStudio for more information.
     }
+
+    private void closeDbConn() {
+        // закрываем подключение при выходе
+        mDb.close();
+    }
+
+    public void updateListView(){
+        getSupportLoaderManager().getLoader(0).forceLoad();
+    }
+
+    private void openDbConn() {
+        mDb = new DB(this);
+        mDb.open();
+    }
+
 
     private void findViewsById() {
         mLvData = (ListView) findViewById(R.id.mainActivityListView);
@@ -88,9 +105,11 @@ public class MainActivity extends AppCompatActivity implements LoaderCallbacks<C
     // обработка нажатия кнопки
     public void onButtonClick(View view) {
         // добавляем запись
-        mDb.addRec("lists", String.valueOf(mScAdapter.getCount() + 1), "test");
+        // mDb.addRec("lists", String.valueOf(mScAdapter.getCount() + 1), "test");
         // получаем новый курсор с данными
-        getSupportLoaderManager().getLoader(0).forceLoad();
+
+        new MainDialogFragment().show(getSupportFragmentManager(), "login");
+
     }
 
     public void onCreateContextMenu(ContextMenu menu, View v, ContextMenuInfo menuInfo) {
@@ -108,13 +127,13 @@ public class MainActivity extends AppCompatActivity implements LoaderCallbacks<C
                 // извлекаем id записи и удаляем соответствующую запись в БД
                 mDb.delRec("lists", acmi.id);
                 // получаем новый курсор с данными
-                getSupportLoaderManager().getLoader(0).forceLoad();
+                updateListView();
                 return true;
             }
             case CM_CHANGE_STATUS_ID:
                 AdapterContextMenuInfo acmi = (AdapterContextMenuInfo) item.getMenuInfo();
                 mDb.updateRec("lists", acmi.id, 0);
-                getSupportLoaderManager().getLoader(0).forceLoad();
+                updateListView();
                 return true;
         }
         return super.onContextItemSelected(item);
@@ -123,7 +142,7 @@ public class MainActivity extends AppCompatActivity implements LoaderCallbacks<C
     protected void onDestroy() {
         super.onDestroy();
         // закрываем подключение при выходе
-        mDb.close();
+        closeDbConn();
     }
 
     @Override

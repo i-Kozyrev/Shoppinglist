@@ -6,4 +6,6 @@
     <string name="add_record">Добавить запись</string>
     <string name="delete_record">Удалить запись</string>
     <string name="change_status_to_inactive">Отметить как выполненное</string>
+    <string name="dialogTextView1">Название:</string>
+    <string name="dialogTextView2">Введите описание</string>
 </resources>
