@@ -1,6 +1,5 @@
 package ikozyrev.shoppinglist;
 
-import android.content.Context;
 import android.database.Cursor;
 import android.os.Bundle;
 import android.support.v4.app.LoaderManager.LoaderCallbacks;
@@ -22,6 +21,7 @@ public class MainActivity extends AppCompatActivity implements LoaderCallbacks<C
 
     private static final int CM_DELETE_ID = 1;
     private static final int CM_CHANGE_STATUS_ID = 2;
+    private static final int CM_EDIT_ROW = 3;
     ListView mLvData;
     public static DB mDb;
     SimpleCursorAdapter mScAdapter;
@@ -36,7 +36,6 @@ public class MainActivity extends AppCompatActivity implements LoaderCallbacks<C
         // открываем подключение к БД
         openDbConn();
 
-
         // создаем адаптер и настраиваем список
         mScAdapter = new SimpleCursorAdapter(this, R.layout.item, null, new String[]{DB.KEY_ID, DB.KEY_DSC}
                 , new int[]{R.id.tvText, R.id.tvDsc}, 0);
@@ -48,8 +47,6 @@ public class MainActivity extends AppCompatActivity implements LoaderCallbacks<C
         // создаем лоадер для чтения данных
         getSupportLoaderManager().initLoader(0, null, this);
         updateListView();
-        // ATTENTION: This was auto-generated to implement the App Indexing API.
-        // See https://g.co/AppIndexing/AndroidStudio for more information.
     }
 
     private void closeDbConn() {
@@ -108,7 +105,7 @@ public class MainActivity extends AppCompatActivity implements LoaderCallbacks<C
         // mDb.addRec("lists", String.valueOf(mScAdapter.getCount() + 1), "test");
         // получаем новый курсор с данными
 
-        new MainDialogFragment().show(getSupportFragmentManager(), "login");
+        new MainDialogFragment().show(getSupportFragmentManager(), "create");
 
     }
 
@@ -116,14 +113,15 @@ public class MainActivity extends AppCompatActivity implements LoaderCallbacks<C
         super.onCreateContextMenu(menu, v, menuInfo);
         menu.add(0, CM_DELETE_ID, 0, R.string.delete_record);
         menu.add(0, CM_CHANGE_STATUS_ID, 0, R.string.change_status_to_inactive);
+        menu.add(0, CM_EDIT_ROW, 0, R.string.edit_record);
     }
 
     public boolean onContextItemSelected(MenuItem item) {
-
+        AdapterContextMenuInfo acmi = (AdapterContextMenuInfo) item.getMenuInfo();
         switch (item.getItemId()) {
             case CM_DELETE_ID: {
                 // получаем из пункта контекстного меню данные по пункту списка
-                AdapterContextMenuInfo acmi = (AdapterContextMenuInfo) item.getMenuInfo();
+
                 // извлекаем id записи и удаляем соответствующую запись в БД
                 mDb.delRec("lists", acmi.id);
                 // получаем новый курсор с данными
@@ -131,8 +129,16 @@ public class MainActivity extends AppCompatActivity implements LoaderCallbacks<C
                 return true;
             }
             case CM_CHANGE_STATUS_ID:
-                AdapterContextMenuInfo acmi = (AdapterContextMenuInfo) item.getMenuInfo();
-                mDb.updateRec("lists", acmi.id, 0);
+                mDb.updateStatus("lists", acmi.id, 0);
+                updateListView();
+                return true;
+            case CM_EDIT_ROW:
+                //mDb.updateStatus("lists", acmi.id, 0);
+                Bundle b = new Bundle();
+                b.putLong("id", acmi.id);
+                MainDialogFragment mdf = new MainDialogFragment();
+                mdf.setArguments(b);
+                mdf.show(getSupportFragmentManager(), "create");
                 updateListView();
                 return true;
         }

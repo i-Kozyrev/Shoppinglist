@@ -57,6 +57,12 @@ public class DB {
 
     }
 
+    public Cursor getRawQResult(String query, String[] args){
+        return mDB.rawQuery(query,args);
+    }
+
+
+
     public void addRec(String tableName, String txt, String dsc) {
         ContentValues cv = new ContentValues();
         cv.put(KEY_NAME, txt);
@@ -69,7 +75,10 @@ public class DB {
     public void delRec(String tableName,long id) {
         mDB.delete(tableName, KEY_ID + " = " + id, null);
     }
-    public void updateRec(String tableName, long id, int status){
+    public void execQuery(String query, String[] args){
+        mDB.execSQL(query,args);
+    }
+    public void updateStatus(String tableName, long id, int status){
 
         mDB.execSQL("UPDATE " + tableName + " SET "+KEY_STATUS+" = " + status + " WHERE " + KEY_ID + " = " + id);
     }

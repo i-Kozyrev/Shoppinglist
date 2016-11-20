@@ -8,4 +8,5 @@
     <string name="change_status_to_inactive">Отметить как выполненное</string>
     <string name="dialogTextView1">Название:</string>
     <string name="dialogTextView2">Введите описание</string>
+    <string name="edit_record">Редактировать запись</string>
 </resources>
