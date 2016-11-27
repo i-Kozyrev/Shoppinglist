@@ -36,7 +36,7 @@ public class MainActivity extends AppCompatActivity implements LoaderCallbacks<C
         openDbConn();
 
         // создаем адаптер и настраиваем список
-        mScAdapter = new SimpleCursorAdapter(this, R.layout.item, null, new String[]{Tables.MainList.KEY_NAME, Tables.MainList.KEY_DSC}
+        mScAdapter = new SimpleCursorAdapter(this, R.layout.ShoppingList, null, new String[]{Tables.MainList.KEY_NAME, Tables.MainList.KEY_DSC}
                 , new int[]{R.id.tvText, R.id.tvDsc}, 0);
         mLvData.setAdapter(mScAdapter);
 
