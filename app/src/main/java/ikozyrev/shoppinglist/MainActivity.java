@@ -15,13 +15,12 @@ import android.view.View;
 import android.widget.AdapterView.AdapterContextMenuInfo;
 import android.widget.ListView;
 
+import ikozyrev.shoppinglist.DB.DB;
+import ikozyrev.shoppinglist.DB.Tables;
 
 
 public class MainActivity extends AppCompatActivity implements LoaderCallbacks<Cursor> {
 
-    private static final int CM_DELETE_ID = 1;
-    private static final int CM_CHANGE_STATUS_ID = 2;
-    private static final int CM_EDIT_ROW = 3;
     ListView mLvData;
     public static DB mDb;
     SimpleCursorAdapter mScAdapter;
@@ -30,14 +29,14 @@ public class MainActivity extends AppCompatActivity implements LoaderCallbacks<C
 
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_main);
+        setContentView(R.layout.activity_shopping_lists);
         findViewsById();
         setSupportActionBar(mToolbar);
         // открываем подключение к БД
         openDbConn();
 
         // создаем адаптер и настраиваем список
-        mScAdapter = new SimpleCursorAdapter(this, R.layout.item, null, new String[]{DB.KEY_ID, DB.KEY_DSC}
+        mScAdapter = new SimpleCursorAdapter(this, R.layout.item, null, new String[]{Tables.MainList.KEY_NAME, Tables.MainList.KEY_DSC}
                 , new int[]{R.id.tvText, R.id.tvDsc}, 0);
         mLvData.setAdapter(mScAdapter);
 
@@ -54,7 +53,7 @@ public class MainActivity extends AppCompatActivity implements LoaderCallbacks<C
         mDb.close();
     }
 
-    public void updateListView(){
+    public void updateListView() {
         getSupportLoaderManager().getLoader(0).forceLoad();
     }
 
@@ -70,11 +69,21 @@ public class MainActivity extends AppCompatActivity implements LoaderCallbacks<C
     }
 
     @Override
-    public boolean onCreateOptionsMenu(Menu menu) {
-        if(mInactiveFlag) {
+    public boolean onPrepareOptionsMenu(Menu menu) {
+        if (mInactiveFlag) {
+            menu.clear();
             getMenuInflater().inflate(R.menu.menu_main_a, menu);
+        } else {
+            menu.clear();
+            getMenuInflater().inflate(R.menu.menu_main, menu);
         }
-        else getMenuInflater().inflate(R.menu.menu_main, menu);
+        return super.onPrepareOptionsMenu(menu);
+    }
+
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+
+        getMenuInflater().inflate(R.menu.menu_main, menu);
         return true;
     }
 
@@ -90,8 +99,7 @@ public class MainActivity extends AppCompatActivity implements LoaderCallbacks<C
             mInactiveFlag = true;
             getSupportLoaderManager().getLoader(0).forceLoad();
 
-        }
-        else if (id == R.id.action_show){
+        } else if (id == R.id.action_hide) {
             mInactiveFlag = false;
             getSupportLoaderManager().getLoader(0).forceLoad();
         }
@@ -101,44 +109,55 @@ public class MainActivity extends AppCompatActivity implements LoaderCallbacks<C
 
     // обработка нажатия кнопки
     public void onButtonClick(View view) {
-        // добавляем запись
-        // mDb.addRec("lists", String.valueOf(mScAdapter.getCount() + 1), "test");
-        // получаем новый курсор с данными
-
         new MainDialogFragment().show(getSupportFragmentManager(), "create");
 
     }
 
     public void onCreateContextMenu(ContextMenu menu, View v, ContextMenuInfo menuInfo) {
+
+        AdapterContextMenuInfo info = (AdapterContextMenuInfo)menuInfo;
         super.onCreateContextMenu(menu, v, menuInfo);
-        menu.add(0, CM_DELETE_ID, 0, R.string.delete_record);
-        menu.add(0, CM_CHANGE_STATUS_ID, 0, R.string.change_status_to_inactive);
-        menu.add(0, CM_EDIT_ROW, 0, R.string.edit_record);
+        getMenuInflater().inflate(R.menu.context_menu, menu);
+        if (mDb.isDoneStatusShoppingListsRow(info.id)){
+            menu.getItem(1).setVisible(false);
+            menu.getItem(2).setVisible(true);
+
+        }
+        else{
+            menu.getItem(1).setVisible(true);
+            menu.getItem(2).setVisible(false);
+        }
+
+
     }
 
     public boolean onContextItemSelected(MenuItem item) {
         AdapterContextMenuInfo acmi = (AdapterContextMenuInfo) item.getMenuInfo();
         switch (item.getItemId()) {
-            case CM_DELETE_ID: {
+            case R.id.delete_rec: {
                 // получаем из пункта контекстного меню данные по пункту списка
 
                 // извлекаем id записи и удаляем соответствующую запись в БД
-                mDb.delRec("lists", acmi.id);
+                mDb.delShoppingList(acmi.id);
                 // получаем новый курсор с данными
                 updateListView();
                 return true;
             }
-            case CM_CHANGE_STATUS_ID:
-                mDb.updateStatus("lists", acmi.id, 0);
+            case R.id.apply_done_status:
+                mDb.updateShoppingListStatus(acmi.id, 1);
                 updateListView();
                 return true;
-            case CM_EDIT_ROW:
-                //mDb.updateStatus("lists", acmi.id, 0);
+            case R.id.apply_undone_status:
+                mDb.updateShoppingListStatus(acmi.id, 0);
+                updateListView();
+                return true;
+            case R.id.edit_row:
+                //mDb.updateShoppingListStatus("lists", acmi.id, 0);
                 Bundle b = new Bundle();
                 b.putLong("id", acmi.id);
                 MainDialogFragment mdf = new MainDialogFragment();
                 mdf.setArguments(b);
-                mdf.show(getSupportFragmentManager(), "create");
+                mdf.show(getSupportFragmentManager(), "edit");
                 updateListView();
                 return true;
         }

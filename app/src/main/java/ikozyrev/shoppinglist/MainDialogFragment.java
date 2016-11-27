@@ -10,6 +10,8 @@ import android.support.v4.app.DialogFragment;
 import android.view.View;
 import android.widget.EditText;
 
+import ikozyrev.shoppinglist.models.ShoppingList;
+
 /**
  * Created in Android Studia
  * User: ikozyrev
@@ -17,7 +19,7 @@ import android.widget.EditText;
  */
 public class MainDialogFragment extends DialogFragment implements
         DialogInterface.OnClickListener {
-    private View form = null;
+    View form;
     Long mId;
     EditText mNameBox;
     EditText mDscBox;
@@ -32,19 +34,17 @@ public class MainDialogFragment extends DialogFragment implements
         AlertDialog.Builder builder = new AlertDialog.Builder(getActivity());
 
         mBundle = this.getArguments();
-        if (!mBundle.isEmpty()) {
+        if (this.getTag().equals("edit")) {
             mId = mBundle.getLong("id");
             mNameBox = (EditText) form.findViewById(R.id.dialog_input_name_ET);
             mDscBox = (EditText) form.findViewById(R.id.dialog_input_DSC_ET);
-            String query = "SELECT NAME, DSC FROM lists WHERE _id=?";
-            String[] args = {String.valueOf(mId)};
-            Cursor res = MainActivity.mDb.getRawQResult(query, args);
+            Cursor res = MainActivity.mDb.getShoppingListNameDsc(mId.intValue());
             if (res.moveToFirst()) {
                 mNameBox.setText(res.getString(res.getColumnIndex("name")));
                 mDscBox.setText(res.getString(res.getColumnIndex("dsc")));
             }
         }
-        return (builder.setTitle("Создание списка").setView(form)
+        return (builder.setView(form)
                 .setPositiveButton(android.R.string.ok, this)
                 .setNegativeButton(android.R.string.cancel, null).create());
     }
@@ -52,16 +52,17 @@ public class MainDialogFragment extends DialogFragment implements
     @Override
     public void onClick(DialogInterface dialog, int which) {
 
-
+        mNameBox = (EditText) form.findViewById(R.id.dialog_input_name_ET);
+        mDscBox = (EditText) form.findViewById(R.id.dialog_input_DSC_ET);
         String name = mNameBox.getText().toString();
         String dsc = mDscBox.getText().toString();
-        if (mBundle.isEmpty()) {
-            MainActivity.mDb.addRec("lists", name, dsc);
+        ShoppingList shoppingList = new ShoppingList(name,dsc);
+        if (this.getTag().equals("create")) {
+            MainActivity.mDb.addShoppingList(shoppingList);
         }
         else{
-            String query = "UPDATE lists set name=?, dsc=? where _id=?";
-            String[] args = {name,dsc,String.valueOf(mId)};
-            MainActivity.mDb.execQuery(query,args);
+            shoppingList.setId(mId.intValue());
+            MainActivity.mDb.updateShoppingListsRec(shoppingList);
         }
         //MainActivity.updateListView();
         ((MainActivity) getActivity()).updateListView();

@@ -4,6 +4,8 @@ import android.content.Context;
 import android.database.Cursor;
 import android.support.v4.content.CursorLoader;
 
+import ikozyrev.shoppinglist.DB.DB;
+
 /**
  * Created in Android Studia
  * User: ikozyrev
@@ -21,9 +23,9 @@ public class MyCursorLoader extends CursorLoader {
     @Override
     public Cursor loadInBackground() {
         if(MainActivity.mInactiveFlag) {
-            return db.getData("lists",new int []{1,0});
+            return db.getShoppingListDataWithStatus(new int []{1,0});
         }
-        else return db.getData("lists", new int[]{1});
+        else return db.getShoppingListDataWithStatus(new int[]{0});
     }
 
 }

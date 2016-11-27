@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android">
+    <item
+        android:id="@+id/delete_rec"
+        android:orderInCategory="100"
+        android:title="@string/delete_record"
+        />
+    <item
+        android:id="@+id/apply_done_status"
+        android:orderInCategory="100"
+        android:title="@string/apply_status_done"
+         />
+    <item
+        android:id="@+id/apply_undone_status"
+        android:orderInCategory="100"
+        android:title="@string/apply_status_undone"
+        />
+    <item
+        android:id="@+id/edit_row"
+        android:orderInCategory="100"
+        android:title="@string/edit_record"
+        />
+</menu>
